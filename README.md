@@ -1,4 +1,4 @@
-# adventure
+# snap
 
 GO/fyne.io Desktop Application (by Bob)
 
