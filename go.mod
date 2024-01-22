@@ -9,6 +9,8 @@ require (
 	golang.org/x/sys v0.15.0
 )
 
+//require github.com/adrium/goheif v0.0.0-20230113233934-ca402e77a786
+
 require (
 	fyne.io/systray v1.10.1-0.20231115130155-104f5ef7839e // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect

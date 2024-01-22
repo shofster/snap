@@ -129,15 +129,18 @@ func main() {
 		} else {
 			app.GetNextOutputPath(system.MainWindow, boundPDF, func(d string) {
 				prefs.SetString("pdf", pdfPath)
-				err := app.CreatePDF(paths, d)
+				err := os.Remove(d)
+				if err != nil && !os.IsNotExist(err) {
+					app.ErrorText(console, fmt.Sprintf("Unable to remove old file. %s", err))
+					return
+				}
+				app.CreatePDF(func(err error) {
+					app.ErrorText(console, err.Error())
+				}, paths, d)
+				console.Speak(fmt.Sprintf("** PDF Written: %s", d))
+				err = browse(d)
 				if err != nil {
 					app.ErrorText(console, fmt.Sprintf("%v", err))
-				} else {
-					console.Speak(fmt.Sprintf("** PDF Written: %s", d))
-					err = browse(d)
-					if err != nil {
-						app.ErrorText(console, fmt.Sprintf("%v", err))
-					}
 				}
 				console.Focus()
 			})

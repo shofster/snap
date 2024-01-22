@@ -2,7 +2,6 @@ package app
 
 import (
 	"fmt"
-	"fyne.io/fyne/v2/dialog"
 	"github.com/jung-kurt/gofpdf"
 	"log"
 	"os"
@@ -46,33 +45,24 @@ func getAllFiles(path string) []string {
 	return files
 }
 
-func CreatePDF(dirs []string, file string) (err error) {
+func CreatePDF(errFunc func(e error), dirs []string, file string) {
 	pdf := gofpdf.New("P", "pt", "Letter", "")
 	pdf.SetMargins(15, 15, 15)
 	for _, dir := range dirs {
-		e := showPdf(dir, pdf)
-		if e != nil || pdf.Err() {
-			log.Printf("CreatePDF error: %s\n %s\n  %s\n", e, pdf.Error(), dir)
-			continue
-		}
+		showPdf(errFunc, dir, pdf)
 	}
-	err = pdf.OutputFileAndClose(file)
-	if pdf.Err() {
-		log.Printf("pdf.OutputFileAndClose error: %s\n", pdf.Error())
+	err := pdf.OutputFileAndClose(file)
+	if err != nil || pdf.Err() {
+		log.Printf("pdf.OutputFileAndClose error: %s %s\n", pdf.Error(), err)
 	}
-	return
 }
 
-func showPdf(dir string, pdf *gofpdf.Fpdf) (err error) {
+func showPdf(errFunc func(e error), dir string, pdf *gofpdf.Fpdf) {
 	files := getAllFiles(dir)
-	err = buildPDF(dir, pdf, files)
-	if err != nil {
-		dialog.ShowError(err, GetSystem().MainWindow)
-	}
-	return err
+	buildPDF(errFunc, dir, pdf, files)
 }
 
-func buildPDF(dir string, pdf *gofpdf.Fpdf, sorted []string) error {
+func buildPDF(errFunc func(e error), dir string, pdf *gofpdf.Fpdf, sorted []string) {
 	var n int
 	header := func() {
 		n = 0
@@ -91,6 +81,7 @@ func buildPDF(dir string, pdf *gofpdf.Fpdf, sorted []string) error {
 		path, err := ImageResourcePath(dir, s)
 		if err != nil {
 			log.Println("Got ImageResourcePath error ", s, err)
+			errFunc(err)
 			continue
 		}
 		if n%(maxPhotoRows*maxPhotoCols) == 0 {
@@ -111,6 +102,7 @@ func buildPDF(dir string, pdf *gofpdf.Fpdf, sorted []string) error {
 		)
 		if pdf.Err() {
 			log.Printf("buildPDF error: %s\n  %s\n", pdf.Error(), path)
+			errFunc(err)
 			continue
 		}
 		// limit length to avoid collision
@@ -120,5 +112,4 @@ func buildPDF(dir string, pdf *gofpdf.Fpdf, sorted []string) error {
 		}
 		pdf.Text(float64(col*xScale+45), float64(row*yScale+140), name)
 	}
-	return nil
 }

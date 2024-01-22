@@ -16,6 +16,7 @@ package app
 */
 
 import (
+	"fmt"
 	"fyne.io/fyne/v2"
 	"os"
 	"path/filepath"
@@ -30,14 +31,19 @@ func ImageResourcePath(dir, name string) (path string, err error) {
 	switch strings.ToLower(filepath.Ext(path)) {
 	case ".jpg", ".jpeg", ".png", ".gif":
 		return
+		//case ".heic":
+		//	if e := CheckHeic(path); e == nil {
+		//		return getHEICImagePath(path)
+		//	}
 	}
 	switch ExtensionType(path) {
 	case AudioExt:
 		details, err := ID3Details(path)
 		if err == nil && details.cover != nil {
 			p := details.cover.StaticName
-			x := filepath.Ext(p)
-			details.cover.StaticName = p[0:len(p)-len(x)] + "." + details.mime
+			details.cover.StaticName = fmt.Sprintf("%s.%s",
+				strings.TrimSuffix(p, filepath.Ext(p)),
+				details.mime)
 			return getTempImagePath(details.cover)
 		}
 	}
@@ -67,13 +73,13 @@ func ExtensionType(path string) string {
 		return FolderExt
 	}
 	switch strings.ToLower(filepath.Ext(path)) {
-	case ".jpg", ".jpeg", ".png", ".gif", ".kdc", ".sfw", ".raw":
+	case ".jpg", ".jpeg", ".png", ".gif", ".kdc", ".sfw", ".raw", ".heic":
 		return CameraExt
 	case ".mp3", ".m4a", ".flac", ".wav", ".wma", ".aac", ".ogg":
 		return AudioExt
 	case ".pdf":
 		return PdfExt
-	case ".mp4", ".m4v", ".mov", ".wmv", ".avi", ".avchd",
+	case ".mp4", ".m4v", ".mov", ".wmv", ".avi", ".avchd", ".hevc",
 		".flv", ".f4v", ".swf", ".3gp", ".mpeg", ".mpg":
 		return VideoExt
 	case ".zip", ".gz", "tgz", ".gzip", ".7z", ".jar":
@@ -126,3 +132,14 @@ func getTempImagePath(resource *fyne.StaticResource) (string, error) {
 	}
 	return path, err
 }
+
+/*
+func getHEICImagePath(path string) (string, error) {
+	name := filepath.Base(path)
+	name = strings.TrimSuffix(name, filepath.Ext(name))
+	o := fmt.Sprintf("%s.jpg",
+		filepath.Join(GetSystem().TempDir, name))
+	//	log.Printf("HEIC: %s\n   %s\n", path, o)
+	return o, ConvertHeicToJpg(path, o)
+}
+*/
