@@ -29,12 +29,8 @@ import (
 func ImageResourcePath(dir, name string) (path string, err error) {
 	path = filepath.Join(dir, name)
 	switch strings.ToLower(filepath.Ext(path)) {
-	case ".jpg", ".jpeg", ".png", ".gif":
+	case ".jpg", ".jpeg", ".png", ".gif", ".bmp":
 		return
-		//case ".heic":
-		//	if e := CheckHeic(path); e == nil {
-		//		return getHEICImagePath(path)
-		//	}
 	}
 	switch ExtensionType(path) {
 	case AudioExt:
@@ -52,6 +48,7 @@ func ImageResourcePath(dir, name string) (path string, err error) {
 
 //  to create resource: fyne bundle -o images.go --pkg app images
 
+const AppleExt = "apple"
 const AudioExt = "audio"
 const BitmapExt = "bitMap"
 const CameraExt = "camera"
@@ -73,12 +70,14 @@ func ExtensionType(path string) string {
 		return FolderExt
 	}
 	switch strings.ToLower(filepath.Ext(path)) {
-	case ".jpg", ".jpeg", ".png", ".gif", ".kdc", ".sfw", ".raw", ".heic":
+	case ".jpg", ".jpeg", ".png", ".gif", ".kdc", ".sfw", ".raw":
 		return CameraExt
 	case ".mp3", ".m4a", ".flac", ".wav", ".wma", ".aac", ".ogg":
 		return AudioExt
 	case ".pdf":
 		return PdfExt
+	case ".heic":
+		return AppleExt
 	case ".mp4", ".m4v", ".mov", ".wmv", ".avi", ".avchd", ".hevc",
 		".flv", ".f4v", ".swf", ".3gp", ".mpeg", ".mpg":
 		return VideoExt
@@ -98,7 +97,10 @@ func ExtensionType(path string) string {
 	return UnknownExt
 }
 
+//  to create resource: fyne bundle -o images.go --pkg app images
+
 var imageResourceMap = map[string]*fyne.StaticResource{
+	AppleExt:   resourceApplePng,
 	AudioExt:   resourceAudioPng,
 	BitmapExt:  resourceBitmapJpg,
 	CameraExt:  resourceCameraPng,
@@ -132,14 +134,3 @@ func getTempImagePath(resource *fyne.StaticResource) (string, error) {
 	}
 	return path, err
 }
-
-/*
-func getHEICImagePath(path string) (string, error) {
-	name := filepath.Base(path)
-	name = strings.TrimSuffix(name, filepath.Ext(name))
-	o := fmt.Sprintf("%s.jpg",
-		filepath.Join(GetSystem().TempDir, name))
-	//	log.Printf("HEIC: %s\n   %s\n", path, o)
-	return o, ConvertHeicToJpg(path, o)
-}
-*/
